@@ -1,0 +1,57 @@
+.main {
+    text-align: center;
+    justify-content: center;
+    display: flex;
+    padding-top: 90px;
+    padding-bottom: 90px;
+    background-color: white;
+  }
+  .sub-main {
+    display: flex;
+    justify-content: center;
+    height: 350px;
+    width: 35%;
+    box-shadow: 6px 6px 6px 6px rgb(207, 207, 207);
+    padding-top: 30px;
+    border-radius: 15px;
+    background-color: white;
+    color: #4CB848;
+  }
+
+
+  .name{
+      padding-left: 70px;
+      font-size: 20px;
+      width: 300px;
+      height: 50px;
+      border-radius: 10px;
+      border-style: solid;
+      border-color: rgb(199, 199, 199);
+      border-width: 1px;
+      background-color: #ffffff;
+  }
+  .second-input{
+      padding-top: 20px;
+  }
+
+  .buttonNew{
+      width: 300px;
+      height: 50px;
+      border-radius: 10px;
+      background-color: #4CB848;
+      color: white;
+      font-size: 20px;
+  
+  }
+  .login-button{
+      padding-top: 25px;
+  }
+
+  .createButton{
+    display: flex;
+    justify-content: center;
+    height: 300px;
+    width: 200px;
+    padding-left: 20px;
+    text-align: center;
+  }

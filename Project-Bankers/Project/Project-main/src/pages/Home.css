@@ -1,0 +1,44 @@
+.background-box{
+
+    background-color: aqua;
+    line-height: 160px;
+    text-align: center;
+    width: 800px;
+    align-items: center;
+    justify-content: center;
+    display: flex;
+}   
+
+.title{
+    width: 90%;
+    margin: 0 auto
+}
+
+.help{
+    color: rgb(10, 100, 30);
+    width: 200%;
+    text-align: center;
+    margin-top: 10%;
+    margin-bottom: 25%;
+    margin-left: 130%;
+}
+
+.green-dot{
+    margin-top: 60%;
+    margin-left: 20%;
+    height: 200px;
+    width: 200px;
+    background-image: linear-gradient(to bottom, rgb(10, 100, 30), rgb(87, 145, 100));
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.yellow-dot{
+    height: 100px;
+    width: 100px;
+    margin-top: 2%;
+    margin-left: 5%;
+    background-image: linear-gradient(to bottom, rgb(235, 225, 50), rgb(200, 200, 130));
+    border-radius: 50%;
+    display: inline-block;
+}
