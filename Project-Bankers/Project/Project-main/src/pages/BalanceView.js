@@ -20,6 +20,7 @@ let initialFrequencyDay = "";
 let initialFrequencyWeek = 0;
 let initialFrequencyPayments = 0;
 let plannedSelectBool = "FALSE";
+let stopRepeat = true;
 
 const dateStringBuilder=(day,month,year)=>{
   //day from calendar buttons is sent here. Converted to full date string to add to statement post.
@@ -328,8 +329,8 @@ function BalanceView() {
       foundDate = targetDate;
     }
 
-    if(type === "Monthly"||type === "Loan"){
-      
+    if(type === "Monthly"||type==="Loan"){
+
       if(date===null){
         //if date is null this means "by day and week" was selected.
         let nestedFound = true;
@@ -374,6 +375,8 @@ function BalanceView() {
       else{
         found = true;
         //this means monthly by "date" was selected.
+        //check if target day is today.
+        if(String(currentDate).slice(8,10)!==date){
         while(found){
           //find next day that matches selected day by number.
           targetDate.setDate(targetDate.getDate()+1)
@@ -381,6 +384,7 @@ function BalanceView() {
           if(String(targetDate).slice(8,10)===String(date)){
             found = false;
           }
+        }
         }
         foundDate = targetDate;
       }
@@ -436,6 +440,7 @@ function BalanceView() {
   const handleFormSubmitRecurring = (event) => {
 
     event.preventDefault();
+    stopRepeat = true;
     const form = event.target;
     const recurring = {
       id: new Date().getTime(),
@@ -646,7 +651,6 @@ function BalanceView() {
            avgupdateAccountBudget();
          sessionStorage.setItem('avgDailyBudget', tempDaily)
     }
-    recurringDailyCheck();
   };
 
   
@@ -717,7 +721,7 @@ function BalanceView() {
           updateAccountBalance();
         }
       }
-      if(transaction.frequency === "One-Time"){
+      {
         //if one-time, this means it affected budget. Undo this affect.
         if(transaction.type === "Income"){
 
@@ -1085,6 +1089,10 @@ function BalanceView() {
 
   //This checks on page load for recurrings that need to be posted.
    const recurringDailyCheck = () => {
+    if(!stopRepeat){
+      return;
+    }
+
     let currentDateTemp = new Date();
     let dayTemp = currentDateTemp.getDate();
     if(dayTemp<10){
@@ -1096,6 +1104,7 @@ function BalanceView() {
     recurrings.filter(recurring=>{
       if(recurring.nextPostDate === stringTemp){
         console.log("Recurring found!")
+        stopRepeat = false;
       //post recurring statement to database associated with current bankuser and recurrings.
 
       const APIpostRecurringStatement=() => {
@@ -1117,7 +1126,6 @@ function BalanceView() {
           affected: "TRUE"
         })
       })
-      .then((res) => res.json())
         .catch(error => {
           if (error.name === 'AbortError') return 
           throw error
@@ -1138,7 +1146,89 @@ function BalanceView() {
     headers: {
       "Content-Type": "application/json"
     },
-  }).then((res) => res.json())
+  }).then((res) => {
+    if(res.status === 200){
+let tempBalance = 0;
+let tempBudget = 0;
+
+if(recurring.type === "Income"){
+//update balance in account
+tempBalance = parseInt(sessionStorage.getItem('balance'))+parseInt(recurring.amount)
+sessionStorage.setItem('balance', tempBalance)
+setGlobalBalance(tempBalance)
+
+const updateAccountBalance = ()=> {
+const updateAccountBalance = "http://localhost:8080/"+sessionStorage.getItem('CurrentUser')+"/account/balance/"+tempBalance
+const abortController = new AbortController()   
+fetch(updateAccountBalance,{
+  signal: abortController.signal,
+  method: "PATCH",
+  headers: {
+    "Content-Type": "application/json"
+  },
+}).then((res) => res.json())
+.catch(error => {if (error.name === 'AbortError') return   
+throw error}) 
+return () => {abortController.abort()}
+}
+updateAccountBalance();
+
+tempBudget = parseInt(sessionStorage.getItem('dailyBudget'))+ parseInt(recurring.amount)
+sessionStorage.setItem('dailyBudget', tempBudget)
+
+}
+if(recurring.type === "Expense"){
+
+//update balance in account
+tempBalance = parseInt(sessionStorage.getItem('balance'))-parseInt(recurring.amount)
+sessionStorage.setItem('balance', tempBalance)
+setGlobalBalance(tempBalance)
+
+const updateAccountBalance=() => {
+    const updateAccountBalance = "http://localhost:8080/"+sessionStorage.getItem('CurrentUser')+"/account/balance/"+tempBalance
+    const abortController = new AbortController() 
+    fetch(updateAccountBalance, {
+      signal: abortController.signal,
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json"
+       },
+      })  
+      .then((res) => res.json())
+      .catch(error => {
+        if (error.name === 'AbortError') return    
+        throw error
+      })       
+    return () => {abortController.abort()}
+  }
+  updateAccountBalance();
+
+tempBudget = parseInt(sessionStorage.getItem('dailyBudget'))-parseInt(recurring.amount)
+sessionStorage.setItem('dailyBudget', tempBudget)
+}
+
+const updateAccountBudget=() => {
+const updateAccountBudget = "http://localhost:8080/"+sessionStorage.getItem('CurrentUser')+"/account/dailybudget/"+tempBudget
+const abortController = new AbortController()
+fetch(updateAccountBudget, { 
+  signal: abortController.signal,
+  method: "PATCH",
+  headers: {
+    "Content-Type": "application/json"
+   },
+}).then((res) => res.json())  
+  .catch(error => {
+    if (error.name === 'AbortError') return 
+    throw error
+  })    
+return () => {abortController.abort()}
+}
+updateAccountBudget();
+
+
+
+
+    }})
     .catch(error => {
       if (error.name === 'AbortError') return 
       throw error
@@ -1146,6 +1236,7 @@ function BalanceView() {
   return () => {abortController.abort()}
 }
 updateNextPostDateURL();
+
 
     //deincrement payments
     if(recurring.frequency==="Loan"){
@@ -1175,7 +1266,7 @@ updateNextPostDateURL();
 
   useEffect(()=>{
     recurringDailyCheck();
-  },[])
+  },[recurrings])
 
   const [isActive, setIsActive] = useState(false)
   
@@ -1349,11 +1440,11 @@ useEffect(() => {
           </tbody>
         </Table>
         </div><br/>
-        <div style={{ textAlign: 'center' }}>
-        <Button variant="outline-success" onClick={handleIncomeClick}>
+        <div style={{ textAlign: 'center'}}>
+        <Button style={{ width: '130px' }} variant="outline-success" onClick={handleIncomeClick}>
           Add Income
         </Button>
-        <Button variant="outline-success" onClick={handleExpenseClick}>
+        <Button style={{ width: '130px' }} variant="outline-success" onClick={handleExpenseClick}>
           Add Expense
         </Button>
       </div>
@@ -1515,16 +1606,16 @@ useEffect(() => {
       </div><br/>
 
       <div style={{ textAlign: 'center' }}>
-        <Button variant="outline-success" onClick={handleIncomeClickRecurring}>
+        <Button style={{ width: '130px' }} variant="outline-success" onClick={handleIncomeClickRecurring}>
           Add Income
         </Button>
-        <Button variant="outline-success" onClick={handleExpenseClickRecurring}>
+        <Button style={{ width: '130px' }} variant="outline-success" onClick={handleExpenseClickRecurring}>
           Add Expense
         </Button>
       </div><br/>
 
       {showRecurringIncomeForm && (
-        <div className='inputForm'>
+        <div style={{width: '335px',paddingLeft: '50%', display: 'flex', justifyContent: 'center', alignItems: 'center', textAlign: 'center'}}>
           <br/>
           <Form onSubmit={handleFormSubmitRecurring}>
             <Form.Group controlId="incomeName">
@@ -1639,7 +1730,7 @@ useEffect(() => {
     </div>
   )}
   {showRecurringExpenseForm && (
-        <div className='inputForm'>
+        <div style={{width: '335px',paddingLeft: '50%', display: 'flex', justifyContent: 'center', alignItems: 'center', textAlign: 'center'}}>
         <br/>
       <Form onSubmit={handleFormSubmitRecurring}>
         <Form.Group controlId="expenseName">
