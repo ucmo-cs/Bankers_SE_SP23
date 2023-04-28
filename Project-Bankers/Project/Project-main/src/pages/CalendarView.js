@@ -309,7 +309,7 @@ function CalendarView() {
   const [savingsSet, setSavingsSet]= useState("FALSE")
   const handleSavings = (event) =>{
     event.preventDefault();
-
+    setShowSavingsForm(false);
     const updateSavingsGoal = "http://localhost:8080/"+sessionStorage.getItem('CurrentUser')+"/account/monthlysavingsgoal/"+savings
     fetch(updateSavingsGoal, {
        method: "PATCH",
