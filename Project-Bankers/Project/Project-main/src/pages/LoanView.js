@@ -160,6 +160,7 @@ function LoanView() {
       else{
         found = true;
         //this means monthly by "date" was selected.
+        if(String(currentDate).slice(8,10)!==date){
         while(found){
           //find next day that matches selected day by number.
           targetDate.setDate(targetDate.getDate()+1)
@@ -168,6 +169,7 @@ function LoanView() {
             found = false;
           }
         }
+      }
         foundDate = targetDate;
     }
 
@@ -326,7 +328,7 @@ function LoanView() {
     postRecurring();
 
     const post = () =>{
-      const APIpost = "http://localhost:8080/users/"+sessionStorage.getItem('bankuser_id')+"/statement"; 
+      const APIpost = "http://localhost:8080/users/"+sessionStorage.getItem('bankuser_id')+"/statement";
       const abortController = new AbortController()
       fetch(APIpost, {
         signal: abortController.signal,
@@ -340,7 +342,8 @@ function LoanView() {
           type: transaction.type,
           planned: transaction.planned,
           frequency: transaction.frequency,
-          amount: transaction.amount
+          amount: transaction.amount,
+          affected: transaction.affected
         })
       })
       .then((res) => res.json())
@@ -480,7 +483,13 @@ function LoanView() {
          avgupdateAccountBudget();
           sessionStorage.setItem('dailyBudget', tempDaily)
 
-    window.location.replace("http://localhost:3000/balance")
+          setSubmitShow(false);
+          setRecurringByMonth(false);
+          setRecurringByWeekDay(false);
+          setRecurringByWeekNumber(false);
+          setPostSelected(false);
+          setRecurringType(false);
+          setAfterCalculation(false);
   };
 
 
@@ -651,3 +660,4 @@ function LoanView() {
 }
 
 export default LoanView;
+
