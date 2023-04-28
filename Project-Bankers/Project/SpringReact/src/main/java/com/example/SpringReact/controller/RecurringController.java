@@ -98,7 +98,7 @@ public class RecurringController {
         //repost statements unowned by recurring.
         for(int i = 0; i < statements.size(); i++) {
         Statement statement = new Statement();
-        statement.setName(statements.get(i).getId().toString());
+        statement.setName(statements.get(i).getName().toString());
         statement.setDate(statements.get(i).getDate());
         statement.setAmount(statements.get(i).getAmount());
         statement.setFrequency(statements.get(i).getFrequency());
